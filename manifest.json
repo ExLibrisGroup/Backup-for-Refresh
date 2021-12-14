@@ -1,0 +1,14 @@
+{
+   "id": "sandbox-backup-for-refresh",
+   "title": "Sandbox Backup for Refresh",
+   "subtitle": "Configuration of PSB after refresh",
+   "author": "Harel Madmoni",
+   "fullscreen": {
+      "allow": true,
+      "open": false
+   },
+   "icon": {
+      "type": "url",
+      "value": "/assets/cloud.png"
+   }
+}

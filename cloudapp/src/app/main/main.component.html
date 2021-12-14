@@ -1,0 +1,111 @@
+<ng-container 
+  *ngIf="(entities$ | async)?.length > 0; then entities; else emptyList">
+</ng-container>
+
+
+
+<ng-template #emptyList>
+  <div class="eca-actions">
+    <button mat-flat-button color="secondary" onclick="document.getElementById('getFile').click()">Upload</button>
+    <input type='file' id="getFile" style="display:none" (change)="upload($event.target.files)" #FILE>
+  </div>
+  <h3>Select user(s) to backup:</h3>
+  <div id="emptyList">
+    <span class="uxf-icon uxf-list" style="font-size: 3em;"></span>
+  </div>
+</ng-template>
+
+<ng-template #entities>
+  <div class="eca-actions">
+    <button mat-flat-button color="secondary" onclick="document.getElementById('getFile').click()">Upload</button>
+    <input type='file' id="getFile" style="display:none" (change)="upload($event.target.files)" #FILE>
+  </div>
+
+  <eca-select-entities
+  [selected]="selectedEntities.users"
+  [entityTypes]="['USER']"
+  (selectedChange)="entitySelected()"
+  >
+  </eca-select-entities>
+  
+  <div *ngIf="selectedEntities.users.length > 0">
+    <br/><br/><br/>
+    <h2>Users to Save:</h2>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Remove</th>
+      </tr>
+      <tr *ngFor="let entity of selectedEntities.users">
+        <td>{{ entity.description }} ({{entity.link.slice(7)}})</td>
+        <td><i class="uxf-icon uxf-close eca-button" (click)="removeUser(entity)"></i></td>
+      </tr>
+    </table>
+  </div>
+
+ 
+  <br/><br/><br/><br/><br/>
+  <textarea readonly>
+Ready to save:
+users: {{this.selectedEntities.users.length}}
+Integration profiles: {{this.selectedEntities.integration_profiles.length}} </textarea>
+  <div class="eca-actions">
+    <button mat-flat-button color="primary" (click)="save()"[disabled]="(selectedEntities.users.length === 0 && selectedEntities.integration_profiles.length === 0) || loading"
+    >Save to file</button>
+  </div>
+</ng-template>
+
+<mat-accordion *ngIf="upload_integration_profiles.length > 0">
+  <br/><br/><br/>
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        Integration profiles
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    
+      <mat-expansion-panel *ngFor="let profile of upload_integration_profiles">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{ profile.name }} ({{ profile.code }})
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <table>
+          <tr>
+            <th>Field</th>
+            <th>Value</th>
+          </tr>
+          <tr>
+            <td *ngIf="profile.system.value">System</td>
+            <td *ngIf="profile.system.value">{{ profile.system.value }}</td>
+          </tr>
+          <tr>
+              <td>Integration type</td>
+              <td>{{ profile.type.value }}</td>
+          </tr>
+          <tr>
+            <td>Description</td>
+            <td>{{ profile.description }}</td>
+        </tr>
+          <tr *ngFor="let action of profile.parameter">
+              <td *ngIf="action.value">{{ action.name.value }}</td>
+              <td *ngIf="action.value">{{ action.value }}</td>
+          </tr>
+        </table>
+      </mat-expansion-panel>
+
+  </mat-expansion-panel>
+  <br/><br/><br/>
+</mat-accordion>
+
+
+<div *ngIf="updateLogText.length > 0">
+  <br/><br/><br/>
+  <h2>Upload log:</h2>
+  <textarea class="uploadLog" readonly [(ngModel)]="updateLogText"></textarea>
+  <br/><br/><br/>
+</div>
+
+<div class="loading-shade" *ngIf="loading">
+  <mat-spinner diameter="50"></mat-spinner>
+</div>

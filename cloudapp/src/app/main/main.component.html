@@ -6,7 +6,7 @@
 
 <ng-template #emptyList>
   <div class="eca-actions">
-    <button mat-flat-button color="secondary" onclick="document.getElementById('getFile').click()">Upload</button>
+    <button mat-flat-button color="secondary" (click)="onUpload()">Upload</button>
     <input type='file' id="getFile" style="display:none" (change)="upload($event.target.files)" #FILE>
   </div>
   <h3>Select user(s) to backup:</h3>
@@ -17,7 +17,7 @@
 
 <ng-template #entities>
   <div class="eca-actions">
-    <button mat-flat-button color="secondary" onclick="document.getElementById('getFile').click()">Upload</button>
+    <button mat-flat-button color="secondary" (click)="onUpload()">Upload</button>
     <input type='file' id="getFile" style="display:none" (change)="upload($event.target.files)" #FILE>
   </div>
 

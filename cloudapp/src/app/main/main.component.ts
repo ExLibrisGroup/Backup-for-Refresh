@@ -47,6 +47,10 @@ export class MainComponent implements OnInit, AfterContentChecked {
       this.selectedEntities.integration_profiles = result['integration_profile']) 
   }
 
+  onUpload() {
+    document.getElementById('getFile').click()
+  }
+
   entitySelected() { 
     if (this.selectEntitiesComponent == undefined){
       return

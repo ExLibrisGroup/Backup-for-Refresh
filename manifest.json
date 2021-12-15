@@ -2,7 +2,7 @@
    "id": "sandbox-backup-for-refresh",
    "title": "Sandbox Backup for Refresh",
    "subtitle": "Configuration of PSB after refresh",
-   "author": "Harel Madmoni",
+   "author": "Ex Libris",
    "fullscreen": {
       "allow": true,
       "open": false

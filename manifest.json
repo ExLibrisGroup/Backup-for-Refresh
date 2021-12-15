@@ -10,5 +10,12 @@
    "icon": {
       "type": "url",
       "value": "/assets/cloud.png"
+   },
+    "contentSecurity": {
+      "sandbox": {
+         "modals": true,
+         "downloads": true,
+         "popups": true
+      }
    }
 }

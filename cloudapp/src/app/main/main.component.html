@@ -48,7 +48,9 @@
   <textarea readonly>
 Ready to save:
 users: {{this.selectedEntities.users.length}}
-Integration profiles: {{this.selectedEntities.integration_profiles.length}} </textarea>
+Integration profiles: {{this.selectedEntities.integration_profiles.length}}
+Allowed Emails: {{this.selectedEntities.allowed_emails.length}} 
+Allowed S/FTP connections: {{this.selectedEntities.allowed_ftps.length}} </textarea>
   <div class="eca-actions">
     <button mat-flat-button color="primary" (click)="save()"[disabled]="(selectedEntities.users.length === 0 && selectedEntities.integration_profiles.length === 0) || loading"
     >Save to file</button>

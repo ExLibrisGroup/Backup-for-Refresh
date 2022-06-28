@@ -4,6 +4,7 @@ import { CloudAppRestService, CloudAppEventsService, Request, HttpMethod,  Alert
 import { saveAs } from '../../../../node_modules/file-saver/src/FileSaver';
 import { SelectEntitiesComponent } from 'eca-select-entities';
 import { from, Observable, of } from 'rxjs';
+import { equal } from 'assert';
 
 
 @Component({
@@ -14,10 +15,12 @@ import { from, Observable, of } from 'rxjs';
 export class MainComponent implements OnInit, AfterContentChecked {
 
   loading = false;
-  selectedEntities = {"users": [], "integration_profiles": []}
+  selectedEntities = {"users": [], "integration_profiles": [] , "allowed_emails" :[] ,"allowed_ftps" :[]}
   updatedUsers = 0
   createdUsers = 0
   failedUsers = 0
+  updatedEmails = 0
+  updatedFtps = 0
   updateLogText = ""
   upload_integration_profiles = []
 
@@ -45,6 +48,10 @@ export class MainComponent implements OnInit, AfterContentChecked {
     })
     this.restService.call('/conf/integration-profiles?limit=100').subscribe(result =>
       this.selectedEntities.integration_profiles = result['integration_profile']) 
+    this.restService.call('/conf/mapping-tables/EmailIncludeList').subscribe(result =>
+        this.selectedEntities.allowed_emails = result['row']) 
+    this.restService.call('/conf/mapping-tables/FtpIncludeList').subscribe(result =>
+      this.selectedEntities.allowed_ftps = result['row'])
   }
 
   onUpload() {
@@ -60,7 +67,7 @@ export class MainComponent implements OnInit, AfterContentChecked {
   }
 
   save() {
-    const selectedApi = {"users": [], "integration_profiles": this.selectedEntities.integration_profiles }
+    const selectedApi = {"users": [], "integration_profiles": this.selectedEntities.integration_profiles , "allowed_emails" :this.selectedEntities.allowed_emails ,"allowed_ftps":this.selectedEntities.allowed_ftps}
     this.loading = true;
     const users = this.selectedEntities.users;
 
@@ -115,7 +122,33 @@ export class MainComponent implements OnInit, AfterContentChecked {
           this.printAlertMessage()
           this.loading = false;
         } 
-      }
+        if (upload.allowed_emails !== undefined) { // Allowed Emails array exist
+          this.restService.call('/conf/mapping-tables/EmailIncludeList').subscribe({
+            next: result => {
+              result['row'] = upload.allowed_emails;
+              this.sendUpdateRequest( '/conf/mapping-tables/EmailIncludeList',result,'Emails') // Allowed Emails exists - swapping
+            },
+            error: (e) => {
+              this.alert.error('Failed to update Allowed Emails: ' + e.message);
+              console.error(e);
+            }
+            
+          });
+        }
+        if (upload.allowed_ftps !== undefined) { // Allowed S/FTP connections array exist
+          this.restService.call('/conf/mapping-tables/FtpIncludeList').subscribe({
+            next: result => {
+              result['row'] = upload.allowed_ftps;
+              this.sendUpdateRequest('/conf/mapping-tables/FtpIncludeList',result,'S/FTP connections') // Allowed S/FTP connections exists - swapping
+            },
+            error: (e) => {
+              this.alert.error('Failed to update Allowed S/FTP connections: ' + e.message);
+              console.error(e);
+            }
+            
+          });
+        }
+       }
       else { // Invalid file format
         this.alert.error('File format is invalid')
         this.loading = false;
@@ -252,5 +285,25 @@ export class MainComponent implements OnInit, AfterContentChecked {
       this.selectEntitiesComponent.masterIndeterminate = true;
       this.selectEntitiesComponent.masterChecked = false;
     }    
+  }
+
+  private sendUpdateRequest( url: string, requestBody: any,mappingName : String ) {
+    let request: Request = {
+      url,
+      method: HttpMethod.PUT,
+      requestBody
+    };
+    console.log('Sending API PUT request ' + url );
+    this.restService.call(request).subscribe({
+      next: result => {
+        this.updateLogText = result['row'].length + " " + mappingName+": Saved successfully\n" +this.updateLogText;
+        this.alert.success('Allowed ' + mappingName +' saved: ' + result['row'].length, { delay: 20000 })
+      },
+      error: (e) => {
+        this.alert.error('Failed to save Allowed '+mappingName+': ' + e.message);
+        console.error(e);
+      }
+      
+    });
   }
 }

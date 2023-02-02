@@ -11,7 +11,7 @@
       "type": "url",
       "value": "/assets/cloud.png"
    },
-   "contentSecurity": {
+    "contentSecurity": {
       "sandbox": {
          "modals": true,
          "downloads": true,

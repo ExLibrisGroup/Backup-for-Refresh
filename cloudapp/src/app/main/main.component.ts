@@ -1,8 +1,8 @@
 import { catchError, concatMap, finalize, map, mergeMap, tap } from 'rxjs/operators';
 import { Component, OnInit, ElementRef, ViewChild, AfterContentChecked } from '@angular/core';
 import { CloudAppRestService, CloudAppEventsService, Request, HttpMethod,  AlertService, CloudAppStoreService, Entity } from '@exlibris/exl-cloudapp-angular-lib';
-import { saveAs } from 'file-saver-es';
-import { SelectEntitiesComponent } from 'eca-components';
+import { saveAs } from '../../../../node_modules/file-saver/src/FileSaver';
+import { SelectEntitiesComponent } from 'eca-select-entities';
 import { from, Observable, of } from 'rxjs';
 import { equal } from 'assert';
 

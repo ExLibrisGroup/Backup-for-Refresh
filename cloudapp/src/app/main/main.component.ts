@@ -1,8 +1,8 @@
 import { catchError, concatMap, finalize, map, mergeMap, tap } from 'rxjs/operators';
-import { Component, OnInit, ElementRef, ViewChild, AfterContentChecked } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterContentChecked, SimpleChanges, OnChanges } from '@angular/core';
 import { CloudAppRestService, CloudAppEventsService, Request, HttpMethod,  AlertService, CloudAppStoreService, Entity } from '@exlibris/exl-cloudapp-angular-lib';
-import { saveAs } from '../../../../node_modules/file-saver/src/FileSaver';
-import { SelectEntitiesComponent } from 'eca-select-entities';
+import { saveAs } from 'file-saver-es';
+import { SelectEntitiesComponent } from 'eca-components';
 import { from, Observable, of } from 'rxjs';
 import { equal } from 'assert';
 
@@ -12,7 +12,7 @@ import { equal } from 'assert';
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.scss']
 })
-export class MainComponent implements OnInit, AfterContentChecked {
+export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
 
   loading = false;
   selectedEntities = {"users": [], "integration_profiles": [] , "allowed_emails" :[] ,"allowed_ftps" :[]}
@@ -36,14 +36,16 @@ export class MainComponent implements OnInit, AfterContentChecked {
   ) {}
 
   ngAfterContentChecked(){
+    console.log('ngAfterContentChecked');
     this.checkOnLoad()
+    
   }
 
   ngOnInit() {
     this.loading = true;
     this.storeService.get("Users").pipe(finalize(() => {this.loading = false })).subscribe( records => {
       if (records) {
-      this.selectedEntities.users = records;  
+        this.selectedEntities.users = records;  
       }
     })
     this.restService.call('/conf/integration-profiles?limit=100').subscribe(result =>
@@ -235,9 +237,7 @@ export class MainComponent implements OnInit, AfterContentChecked {
   }
 
   private checkOnLoad(){
-    if (this.selectEntitiesComponent){
-      this.selectEntitiesComponent.selected = this.selectedEntities.users
-    }
+    
     if (this.selectEntitiesComponent){
       let numberOfitems = this.selectEntitiesComponent.items.length;
       let numberOfChecked = 0
@@ -258,6 +258,7 @@ export class MainComponent implements OnInit, AfterContentChecked {
         this.selectEntitiesComponent.masterChecked = false;
       }
     }  
+    
   }
 
   removeUser(entity: Entity){
@@ -305,5 +306,11 @@ export class MainComponent implements OnInit, AfterContentChecked {
       }
       
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.hasOwnProperty('selectEntitiesComponent') ) {
+        this.selectEntitiesComponent.selected = this.selectedEntities.users
+    }
   }
 }

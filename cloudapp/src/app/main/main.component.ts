@@ -36,9 +36,7 @@ export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
   ) {}
 
   ngAfterContentChecked(){
-    console.log('ngAfterContentChecked');
     this.checkOnLoad()
-    
   }
 
   ngOnInit() {
@@ -47,6 +45,7 @@ export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
       if (records) {
         this.selectedEntities.users = records;  
       }
+      this.selectEntitiesComponent.selected = this.selectedEntities.users;
     })
     this.restService.call('/conf/integration-profiles?limit=100').subscribe(result =>
       this.selectedEntities.integration_profiles = result['integration_profile']) 
@@ -258,7 +257,6 @@ export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
         this.selectEntitiesComponent.masterChecked = false;
       }
     }  
-    
   }
 
   removeUser(entity: Entity){

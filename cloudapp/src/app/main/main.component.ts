@@ -22,6 +22,9 @@ export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
   updatedEmails = 0
   updatedFtps = 0
   updateLogText = ""
+  updatedIP = 0
+  createdIP = 0
+  failedIP =0
   upload_integration_profiles = []
 
   entities$ = this.eventsService.entities$;
@@ -99,16 +102,34 @@ export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
       if (upload !== undefined) { // File is not empty
         if (upload.integration_profiles !== undefined) { // Integration profiles array exist
           this.upload_integration_profiles = upload.integration_profiles
+          from(this.upload_integration_profiles).pipe(
+            mergeMap((integrationProfile: any) => {
+              let url = "/conf/integration-profiles/" + integrationProfile.id     
+              return this.restService.call<any>(url).pipe(
+                concatMap(() =>  this.update(integrationProfile, url,"integration-profiles")), // Integration Profile exists - update it
+                catchError(error => {
+                  if (error.status === 400) { // Integration Profile doesn't exist - create new  
+                    return this.create(integrationProfile,'/conf/integration-profiles','integration-profiles');
+                  } else {
+                    this.alert.error('Failed to retrieve entity: ' + error.message);
+                    return of(Observable);
+                  }
+                }),
+              )
+            }),
+            finalize(() => this.printIPAlertMessage())
+          ).subscribe() 
+
         }
         if (upload.users !== undefined) { // Users array exist
           from(upload.users).pipe(
             mergeMap((user: any) => {
               let url = "/users/" + user.primary_id     
               return this.restService.call<any>(url).pipe(
-                concatMap(() =>  this.update(user, url)), // User exists - update it
+                concatMap(() =>  this.update(user, url,"users")), // User exists - update it
                 catchError(error => {
                   if (error.status === 400) { // User doesn't exist - create new  
-                    return this.create(user,'/users');
+                    return this.create(user,'/users','users');
                   } else {
                     this.alert.error('Failed to retrieve entity: ' + error.message);
                     return of(Observable);
@@ -158,7 +179,7 @@ export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
     
   }
 
-  update(value: any, url: any) {
+  update(value: any, url: any,type :string) {
     const requestBody = value;
     let request: Request = {
       url: url, 
@@ -166,13 +187,13 @@ export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
       requestBody
     };
     return this.restService.call(request).pipe(
-      tap((record) => {this.printUpdateLog(record)}), 
-      catchError(err => {this.printUpdateFailedLog(value, err);
+      tap((record) => {this.printUpdateLog(record, type)}), 
+      catchError(err => {this.printUpdateFailedLog(value, err,type);
         console.log(err);
         return of(Observable)}))
   }
 
-  create(value: any, url: any) {
+  create(value: any, url: any,type :string) {
     const requestBody = value;
     let request: Request = {
       url: url, 
@@ -180,33 +201,57 @@ export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
       requestBody
     };
     return this.restService.call(request).pipe(
-      tap((record) => {this.printCreatedLog(record)}), 
-      catchError(err => {this.printCreatedFailedLog(value, err);
+      tap((record) => {this.printCreatedLog(record, type)}), 
+      catchError(err => {this.printCreatedFailedLog(value, err, type);
         console.log(err);
         return of(Observable)})) 
   }
 
-  printUpdateLog(record: any){
-    let userName = record.first_name + " " + record.last_name + " (" + record.primary_id + ")"
-    this.updatedUsers++;
+  printUpdateLog(record: any,type :string){
+    let userName ='';
+    if(type == 'users'){
+      userName = record.first_name + " " + record.last_name + " (" + record.primary_id + ")" 
+      this.updatedUsers++;
+    }else if(type == 'integration-profiles'){
+      userName = record.code + " - " + record.name + " (" + record.type.value + ")" ;
+      this.updatedIP++;
+    }
     this.updateLogText += userName + ": Updated successfully\n";
   }
 
-  printCreatedLog(record: any){
-    let userName = record.first_name + " " + record.last_name + " (" + record.primary_id + ")"
-    this.createdUsers++;
+  printCreatedLog(record: any,type :string){
+    let userName ='';
+    if(type == 'users'){
+      userName = record.first_name + " " + record.last_name + " (" + record.primary_id + ")"
+      this.createdUsers++;
+    }else if(type == 'integration-profiles'){
+      userName = record.code + " - " + record.name + " (" + record.type.value + ")" 
+      this.createdIP++;
+    }
     this.updateLogText += userName + ": Created successfully\n";
   }
 
-  printUpdateFailedLog(record:any, error:any){
-    let userName = record.first_name + " " + record.last_name + " (" + record.primary_id + ")"
-    this.failedUsers++;
+  printUpdateFailedLog(record:any, error:any, type:string){
+    let userName ='';
+    if(type == 'users'){
+      userName = record.first_name + " " + record.last_name + " (" + record.primary_id + ")"
+      this.failedUsers++;
+    }else if(type == 'integration-profiles'){
+      userName = record.code + " " + record.name + " (" + record.type.value + ")" 
+      this.failedIP++;
+    }
     this.updateLogText += userName + ": Failed to update - " + error.message + "\n";
   }
 
-  printCreatedFailedLog(record:any, error:any){
-    let userName = record.first_name + " " + record.last_name + " (" + record.primary_id + ")"
-    this.failedUsers++;
+  printCreatedFailedLog(record:any, error:any, type:string){
+    let userName ='';
+    if(type == 'users'){
+      userName = record.first_name + " " + record.last_name + " (" + record.primary_id + ")"
+      this.failedUsers++;
+    }else if(type == 'integration-profiles'){
+      userName = record.code + " " + record.name + " (" + record.type.value + ")" 
+      this.failedIP++;
+    }
     this.updateLogText += userName + ": Failed to create - " + error.message + "\n";
   }
 
@@ -223,6 +268,22 @@ export class MainComponent implements OnInit, AfterContentChecked ,OnChanges{
     this.failedUsers = 0;
     this.updatedUsers = 0;
     this.createdUsers = 0;
+    this.loading=false;
+  }
+
+  printIPAlertMessage(){
+    let users_updated = 'Integration profiles Updated: '+ this.updatedIP;
+    let users_created = 'Integration profiles Created: ' + this.createdIP;
+    let users_failed = 'Integration profiles Failed: ' + this.failedIP;
+
+    this.alert.success(users_updated, { delay: 20000 })
+    this.alert.success(users_created, { delay: 20000 })
+    if (this.failedIP !== 0) {
+      this.alert.error(users_failed)
+    }    
+    this.failedIP = 0;
+    this.updatedIP = 0;
+    this.createdIP = 0;
     this.loading=false;
   }
   
